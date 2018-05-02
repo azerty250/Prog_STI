@@ -83,8 +83,6 @@ def time_update() :
 
 
 
-
-
 def measurement_update() :
     #In here we will update the weight associatied to each particles based on the beacons measurement
 
@@ -103,6 +101,7 @@ def particle_filter(x_cam, y_cam, theta_cam) :
         time_update()
         measurement_update()
         
-        return estimated_pos()
+    
+    return estimated_pos()
 
 

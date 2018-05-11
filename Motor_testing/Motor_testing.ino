@@ -27,6 +27,8 @@
  Connect LB_IS and RB_IS to UNO digital 3 at the same time
  */
 
+ #include "RomEnco.h"
+
 int E1 = 5;     //M1 Speed Control
 int E2 = 6;     //M2 Speed Control
 int M1 = 4;     //M1 Direction Control
@@ -81,6 +83,9 @@ void current_sense()                  // current sense and diagnosis
   } 
 }
 
+RomEnco enco[2];
+
+
 void setup(void) 
 { 
   int i;
@@ -92,6 +97,11 @@ void setup(void)
   digitalWrite(E2,LOW); 
   pinMode(2,INPUT);
   pinMode(3,INPUT);
+  
+
+    enco[0].begin(44,42);
+  // Setup encoder 1 on pin 4 and 5.
+  enco[1].begin(40,38);
 } 
 
 void loop(void) 
@@ -131,5 +141,13 @@ void loop(void)
     }
     else stop();  
   }
+
+  Serial.print(enco[0].getPosition());
+  Serial.print(", ");
+  Serial.print(enco[1].getPosition());
+  Serial.println(", ");
+
+    delay(200);
+
 
 }

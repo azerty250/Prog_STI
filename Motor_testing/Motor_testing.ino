@@ -1,32 +1,3 @@
-/*
- /*
- # This Sample code is for testing the DC Motor Driver 2x15A_lite module.
- 
- # Editor : Phoebe
- # Date   : 2012.11.6
- # Ver    : 0.1
- # Product: DC Motor Driver 2x15A_lite
- # SKU    : DRI0018
- 
- # Description:     
- # Drive 2 motors with this DC Motor Driver module  
- 
- # Hardwares:
- 1. Arduino UNO
- 2. DC Motor Driver 2x15A_lite  
- 3. DC motors x2
- 
- #Steps:
- 1.Connect the M1_PWM & M2_PWM to UNO digital 5 & 6
- 2.Connect the M1_EN & M2_EN to UNO digital 4 & 7
- 3.Connect +5V & GND to UNO 5V & GND
- 
- # Function for current sense and diagnosis,if you want to use
- please connect the IS pins to Arduino
- Connect LA_IS and RA_IS to UNO digital 2 at the same time
- Connect LB_IS and RB_IS to UNO digital 3 at the same time
- */
-
  #include <Encoder.h>
 
 int E1 = 5;     //M1 Speed Control

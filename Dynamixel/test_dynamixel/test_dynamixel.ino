@@ -13,17 +13,17 @@ int scan_direction;
 
 void setup(){
   
-  Serial.begin(9600);
+  Dynamixel.begin(1000000,2);  // Initialize the servo at 1Mbps and Pin Control 2
 
-  Dynamixel.begin(9600,2);  // Initialize the servo at 1Mbps and Pin Control 2
+   Serial.begin(9600);
+  
   Dynamixel.setEndless(DYMX_ID, OFF);
   scan_angle=0;
   scan_direction=SCAN_SPEED;
 
-delay(1000);
+  delay(1000);
   
 }
-
 
 
 void loop(){

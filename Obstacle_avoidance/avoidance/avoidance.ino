@@ -74,8 +74,16 @@ void setup()
 
   //Init the ultrasonic sensors (TRIG_PIN, ECHO_PIN)
   //Faut que je test au niveua electrique un cable plat avec des pins males brancher dedans
-  //front_mid.init(,);
-  //front_left.init()
+  right_back.init(40,41);
+  right_front.init(42,43);
+
+  front_right.init(44,45);
+  front_mid.init(46,47);
+  front_left.init(48.49)
+
+  left_front.init(50,51);
+  left_back.init(52,53);
+
 
   //Init the motors
   digitalWrite(E1,LOW);   

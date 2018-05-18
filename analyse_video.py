@@ -14,9 +14,9 @@ cap = cv2.VideoCapture(0)
 
 # definition des bornes pour le choix des couleurs
 boundaries = [
-	([0, 0, 100], [140, 60, 255]), #rouge
-	([0, 50, 0], [70, 255, 70]), #vert
-	([100, 0, 0], [255, 80, 120]) #bleu
+	([0, 0, 80], [80, 48, 255]), #rouge
+	([0, 60, 0], [70, 255, 60]) #vert
+	#([80, 0, 0], [255, 80, 50]) #bleu
 ]
 
 
@@ -31,16 +31,42 @@ while True:
         lower = np.array(lower, dtype = "uint8")
         upper = np.array(upper, dtype = "uint8")
  
-	# find the colors within the specified boundaries and apply
-	# the mask
+	    # find the colors within the specified boundaries and apply
+	    # the mask
         mask = cv2.inRange(im, lower, upper)
         output = cv2.bitwise_and(im, im, mask = mask)
  
-	# show image
-	cv2.imshow("images", np.hstack([im, output]))
-	key = cv2.waitKey(10)
+	    # show image
+        cv2.imshow("images", np.hstack([im, output]))
 
+
+
+        gray = cv2.cvtColor(output,cv2.COLOR_BGR2GRAY)
+
+
+        edges = cv2.Canny(gray,100,200,apertureSize = 3)
+        cv2.imshow('edges',edges)
+
+
+        minLineLength = 30
+        maxLineGap = 30
+        lines = cv2.HoughLinesP(edges,1,np.pi/180,30,minLineLength,maxLineGap)
+        if lines is None:
+            print 'Pas de lignes'
+        else:
+            print len(lines)," lignes"
+            for x in range(0, len(lines)):
+                for x1,y1,x2,y2 in lines[x]:
+                    cv2.line(output,(x1,y1),(x2,y2),(0,255,0),2)
+
+            cv2.imshow('hough',output)
+
+
+
+
+        key = cv2.waitKey(10)
+    
     # taper 'q' pour quitter le programme
-    if key == cond_quit:
-        break
+        if key == cond_quit:
+            break
 

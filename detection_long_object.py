@@ -48,27 +48,28 @@ while True:
         params = cv2.SimpleBlobDetector_Params()
 
         # Change thresholds
-        params.minThreshold = 30
+        params.minThreshold = 100
         params.maxThreshold = 300
 
 
         # Filter by Area.
-        params.filterByArea = False
-        params.minArea = 100
-        params.maxArea = 1000
+        params.filterByArea = True
+        params.minArea = 300
+        params.maxArea = 800
 
         # Filter by Circularity
         params.filterByCircularity = False
         params.minCircularity = 0.1
+        params.maxCircularity = 0.6
 
         # Filter by Convexity
         params.filterByConvexity = False
         params.minConvexity = 0.87
 
         # Filter by Inertia
-        params.filterByInertia = False
+        params.filterByInertia = True
         params.minInertiaRatio = 0.01
-        params.maxInertiaRatio = 0.5
+        params.maxInertiaRatio = 0.1
 
         # Create a detector with the parameters
         ver = (cv2.__version__).split('.')

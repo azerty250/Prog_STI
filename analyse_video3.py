@@ -1,6 +1,8 @@
 import numpy as np
 import argparse
 import cv2
+#from PIL import Image
+#import PIL.imageOps
 
 cond_quit = 1048689 #valeur correspondant a 'q' pour quitter le programme
 
@@ -14,8 +16,8 @@ cap = cv2.VideoCapture(0)
 
 # definition des bornes pour le choix des couleurs
 boundaries = [
-	#([0, 0, 80], [80, 48, 255]) #rouge
-	([0, 0, 80], [100, 48, 255])
+	([0, 0, 80], [80, 48, 255]) #rouge
+	#([0, 0, 80], [100, 48, 255])
 	#([0, 60, 0], [70, 255, 60]) #vert
 	#([95, 0, 0], [255, 100, 50]) #bleu
 ]
@@ -36,6 +38,58 @@ while True:
 	    # the mask
         mask = cv2.inRange(im, lower, upper)
         output = cv2.bitwise_and(im, im, mask = mask)
+ 
+        gray = cv2.cvtColor(output,cv2.COLOR_BGR2GRAY)
+        
+        gray = np.invert(gray)
+        cv2.imshow('gray',gray)
+        
+        # Setup SimpleBlobDetector parameters.
+        params = cv2.SimpleBlobDetector_Params()
+
+        # Change thresholds
+        params.minThreshold = 30
+        params.maxThreshold = 300
+
+
+        # Filter by Area.
+        params.filterByArea = False
+        params.minArea = 100
+        params.maxArea = 1000
+
+        # Filter by Circularity
+        params.filterByCircularity = False
+        params.minCircularity = 0.1
+
+        # Filter by Convexity
+        params.filterByConvexity = False
+        params.minConvexity = 0.87
+
+        # Filter by Inertia
+        params.filterByInertia = False
+        params.minInertiaRatio = 0.01
+        params.maxInertiaRatio = 0.5
+
+        # Create a detector with the parameters
+        ver = (cv2.__version__).split('.')
+        if int(ver[0]) < 3 :
+            detector = cv2.SimpleBlobDetector(params)
+        else : 
+            detector = cv2.SimpleBlobDetector_create(params)
+
+
+        # Detect blobs.
+        keypoints = detector.detect(gray)
+
+# Draw detected blobs as red circles.
+# cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS ensures
+# the size of the circle corresponds to the size of blob
+
+        im_with_keypoints = cv2.drawKeypoints(output, keypoints, np.array([]), (0,0,255), cv2.DRAW_MATCHES_FLAGS_DRAW_RICH_KEYPOINTS)
+
+# Show blobs
+        cv2.imshow("Keypoints", im_with_keypoints)
+ 
  
         #cv2.circle(output,(300,300),10,(0,255,0))
         #print(output[300][300])

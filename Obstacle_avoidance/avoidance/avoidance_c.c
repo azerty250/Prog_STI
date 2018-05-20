@@ -115,7 +115,7 @@ void get_brait_speed(int* speed_right, int* speed_left)
   for(i = 0; i < SENSOR_NUMBER; i++)
   {
     distance = ultrasonic_sensors[i].readDisctanceInCm();
-    *speed_right *= (w_right[i]*distance);
-    *speed_left  *= (l_right[i]*distance);
+    *speed_right = (*speed_right) + *speed_right * (w_right[i]*distance);
+    *speed_left  = (*speed_left)  + *speed_left *(w_left[i]*distance);
   }
 }

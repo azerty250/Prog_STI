@@ -12,10 +12,11 @@ int scan_angle;
 int scan_direction;
 
 void setup(){
-  
+
+     Serial.begin(57600);
+
   Dynamixel.begin(1000000,2);  // Initialize the servo at 1Mbps and Pin Control 2
 
-   Serial.begin(9600);
   
   Dynamixel.setEndless(DYMX_ID, OFF);
   scan_angle=0;
@@ -27,14 +28,17 @@ void setup(){
 
 
 void loop(){
-    if (scan_angle> SCAN_MAX_ANGLE) {
-    scan_direction=-SCAN_SPEED;
-  } else {
-    if (scan_angle<-SCAN_MAX_ANGLE) {
-      scan_direction= SCAN_SPEED;
+    if (scan_angle> SCAN_MAX_ANGLE) 
+    {
+      scan_direction=-SCAN_SPEED;
+    } 
+    else 
+    {
+      if (scan_angle<-SCAN_MAX_ANGLE) 
+      {
+        scan_direction= SCAN_SPEED;
+      }
     }
-
-  }
   scan_angle+=scan_direction;
   Serial.println(scan_angle);
   

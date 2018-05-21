@@ -19,13 +19,13 @@ void current_sense()                  // current sense and diagnosis
 Encoder enc_right(18, 19);
 Encoder enc_left(20, 21);
 
+long positionLeft  = 0;
+long positionRight = 0;
+
 void setup(void)
 {
   Serial.begin(9600);
 }
-
-long positionLeft  = -999;
-long positionRight = -999;
 
 long new_right = 0;
 long new_left = 0;

@@ -33,24 +33,29 @@ def ToTal_algorithm((x1,y1),(x2,y2),(x3,y3),phi1,phi2,phi3):
 	x_pos = x2 + (k31_p*(y12_p-y23_p))/D
 	y_pos = y2 + (k31_p*(x23_p-x12_p))/D
 	
-	return (x_pos,y_pos)
+	#compute the robot orientation
+	if y1-y_pos > 0:
+		theta = np.arctan(-(x1-x_pos)/(y1-y_pos))-phi1
+	else:
+		theta = np.arctan(-(x1-x_pos)/(y1-y_pos))-phi1+np.pi
+	
+	return (x_pos,y_pos,theta)
 
 
 dessin = np.zeros((1020,1020))
 dessin = dessin + 255
-#print(dessin)
 
 cv2.rectangle(dessin,(10,10),(1010,1010),(0,0,0))
-position_x, position_y = ToTal_algorithm((0,1),(0,0),(1,0),-np.pi/2,0,np.pi/2)
 
-#position_x = -1/(tan_gamma-tan_delta)
-#position_y = -position_x * tan_gamma
+position_x, position_y, theta = ToTal_algorithm((1,0),(1,1),(0,1),-np.pi/2,0,np.pi/2)
+
+print(theta)
 print(position_x)
 print(position_y)
 
 cv2.circle(dessin,(int(1000*position_x),int(1000*position_y)),10,(0,0,0))
+cv2.arrowedLine(dessin,(500,500),(int(500-50*np.sin(theta)),int(500-50*np.cos(theta))),(0,255,0))
 
 cv2.imshow('dessin',dessin)
 
 cv2.waitKey(0)
-

@@ -4,6 +4,9 @@
 static char* in_buffer;
 static int length = 10;
 
+static int speed_right;
+static int speed_left;
+
 void setup()
 {
 	//Starts the communication with the raspberry pi (or computer)
@@ -12,6 +15,9 @@ void setup()
 	init_motor();
 
 	init_us_sensors();
+
+	speed_right = 0;
+	speed_left = 0;
 }
 
 void decode_buffer()
@@ -36,9 +42,15 @@ void loop()
 			case '1':
 			{
 				decode_buffer();
-				set_speed(0,0);
+				//get speed from raspberry pi here
 				break;
 			}
 		}
 	}
+	
+	//update the speed according to the braitenberg
+	get_brait_speed(&speed_left, &speed_right);
+	
+	//set the speed here
+	set_speed(0,0);	
 }

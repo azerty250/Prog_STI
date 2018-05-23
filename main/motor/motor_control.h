@@ -1,3 +1,6 @@
+#ifndef motor_control_h
+#define motor_control_h
+
 #include "Encoder.h"
 
 #define E1 = 5;     //M1 Speed Control
@@ -8,3 +11,6 @@
 void set_speed(char left, char right);
 
 void init_motor();
+
+
+#endif

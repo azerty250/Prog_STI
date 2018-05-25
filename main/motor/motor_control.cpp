@@ -29,30 +29,30 @@ void set_speed(char left, char right)          //Move forward
 	if (left > 0 && right > 0)
 	{
 		analogWrite(E1, left);      //PWM Speed Control
-		digitalWrite(M1, HIGH);
+		digitalWrite(M1, LOW);
 		analogWrite(E2, right);
-		digitalWrite(M2, HIGH);
+		digitalWrite(M2, LOW);
 	}
 	else if (left < 0 && right > 0)
 	{
 		analogWrite(E1, left);      //PWM Speed Control
-		digitalWrite(M1, LOW);
-		analogWrite(E2, right);
-		digitalWrite(M2, HIGH);
-	}
-	else if (left > 0 && right < 0)
-	{
-		analogWrite(E1, left);      //PWM Speed Control
 		digitalWrite(M1, HIGH);
 		analogWrite(E2, right);
 		digitalWrite(M2, LOW);
 	}
-	else if (left < 0 && right < 0)
+	else if (left > 0 && right < 0)
 	{
 		analogWrite(E1, left);      //PWM Speed Control
 		digitalWrite(M1, LOW);
 		analogWrite(E2, right);
-		digitalWrite(M2, LOW);
+		digitalWrite(M2, HIGH);
+	}
+	else if (left < 0 && right < 0)
+	{
+		analogWrite(E1, left);      //PWM Speed Control
+		digitalWrite(M1, HIGH);
+		analogWrite(E2, right);
+		digitalWrite(M2, HIGH);
 	}
 }
 

@@ -1,5 +1,7 @@
 #include "manual_mode.h"
 
+static long int time_high[4] = { 0,0,0,0 };
+
 void init_manual_mode()
 {
 	pinMode(PIN_RX_1, INPUT);

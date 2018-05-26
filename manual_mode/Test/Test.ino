@@ -5,10 +5,10 @@
 #define M1  4     //M1 Direction Control
 #define M2  7    //M1 Direction Control
 
-#define PIN_RX_1 32 // pin for input num * from receiver
-#define PIN_RX_2 30 // (*=1,2,3,4)
-#define PIN_RX_3 28
-#define PIN_RX_4 26
+#define PIN_RX_1 30 // pin for input num * from receiver
+#define PIN_RX_2 31 // (*=1,2,3,4)
+#define PIN_RX_3 32
+#define PIN_RX_4 33
 
 #define RX_1 0 // index for memory for input num * from receiver
 #define RX_2 1 // (*=1,2,3,4)

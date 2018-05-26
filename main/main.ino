@@ -1,5 +1,6 @@
 #include "motor/motor_control.h"
 #include "braitenberg/braitenberg.h" 
+#include "motor\manual_mode.h"
 
 static char* in_buffer;
 static int length = 10;
@@ -15,6 +16,8 @@ void setup()
 	init_motor();
 
 	init_us_sensors();
+
+	init_manual_mode();
 
 	speed_right = 0;
 	speed_left = 0;
@@ -37,6 +40,7 @@ void loop()
 			case '0':
 			{
 				//go to manual mode
+				Serial.println("Manual mode activated");
 				break;
 			}
 			case '1':

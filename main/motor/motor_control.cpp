@@ -56,7 +56,7 @@ void set_speed(char left, char right)          //Move forward
 	}
 }
 
-void loop(void)
+void motor_control_main(void)
 {
 	new_right = enc_right.read();
 	new_left = enc_left.read();

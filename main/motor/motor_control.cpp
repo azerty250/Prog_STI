@@ -56,6 +56,26 @@ void set_speed(char left, char right)          //Move forward
 	}
 }
 
+long get_diff_enc_right()
+{
+	return enc_right.read();
+}
+
+void reset_enc_right()
+{
+	enc_right.write(0);
+}
+
+long get_diff_enc_left()
+{
+	return enc_left.read();
+}
+
+void reset_enc_left()
+{
+	enc_left.write(0);
+}
+
 void motor_control_main(void)
 {
 	new_right = enc_right.read();

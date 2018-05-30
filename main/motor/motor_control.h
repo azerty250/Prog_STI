@@ -12,6 +12,14 @@ void set_speed(char left, char right);
 
 void init_motor();
 
+long get_diff_enc_right();
+
+void reset_enc_right();
+
+long get_diff_enc_left();
+
+void reset_enc_left();	
+
 void motor_control_main(void);
 
 

@@ -2,6 +2,7 @@
 # Code base coming from https://github.com/rlabbe 
 # It was adapted to the characteristics of the robot
 #######################
+
 import matplotlib.pyplot as plt
 import numpy as np
 from numpy.random import uniform

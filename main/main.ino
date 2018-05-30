@@ -1,6 +1,6 @@
 #include "motor/motor_control.h"
 #include "braitenberg/braitenberg.h" 
-#include "motor\manual_mode.h"
+#include "motor/manual_mode.h"
 
 static char* in_buffer;
 static int length = 10;

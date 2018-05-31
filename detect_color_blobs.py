@@ -21,6 +21,8 @@ boundaries = [
 	([0, 0, 150], [50, 100, 255]) #jaune
 ]
 
+i = 0
+
 # loop over the boundaries
 for (lower, upper) in boundaries:
 	# create NumPy arrays from the boundaries
@@ -30,7 +32,7 @@ for (lower, upper) in boundaries:
 	# find the colors within the specified boundaries and apply
 	# the mask
 	mask = cv2.inRange(image_hsv, lower, upper)
-	print(mask)
+	
 	output_hsv = cv2.bitwise_and(image_hsv, image_hsv, mask = mask)
 
 	output = cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR)
@@ -84,4 +86,5 @@ for (lower, upper) in boundaries:
 
 	# Show blobs
 	cv2.imshow("Keypoints", im_with_keypoints)
+	i = i+1
 	cv2.waitKey(0)

@@ -15,23 +15,28 @@ image_hsv = cv2.cvtColor(image,  cv2.COLOR_BGR2HSV)
 
 # definition des bornes pour le choix des couleurs
 boundaries = [
-	([0, 100, 100], [20, 255, 255]), #rouge
+	([170, 100, 100], [20, 255, 255]), #rouge
 	([80,100,100],[90,255,255]), #vert
 	([100, 100, 100], [120, 255, 255]), #bleu
 	([0, 0, 150], [50, 100, 255]) #jaune
 ]
 
-i = 0
 
 # loop over the boundaries
 for (lower, upper) in boundaries:
+	
 	# create NumPy arrays from the boundaries
 	lower = np.array(lower, dtype = "uint8")
 	upper = np.array(upper, dtype = "uint8")
- 
-	# find the colors within the specified boundaries and apply
-	# the mask
-	mask = cv2.inRange(image_hsv, lower, upper)
+	
+	if lower[0] > upper[0]:
+		# find the colors within the specified boundaries and apply
+		# the mask
+		mask1 = cv2.inRange(image_hsv, np.array([0, lower[1], lower[2]], dtype = "uint8"), upper)
+		mask2 = cv2.inRange(image_hsv, lower, np.array([255, upper[1], upper[2]], dtype = "uint8"))
+		mask = mask1 | mask2
+	else:
+		mask = cv2.inRange(image_hsv, lower, upper)
 	
 	output_hsv = cv2.bitwise_and(image_hsv, image_hsv, mask = mask)
 
@@ -86,5 +91,4 @@ for (lower, upper) in boundaries:
 
 	# Show blobs
 	cv2.imshow("Keypoints", im_with_keypoints)
-	i = i+1
 	cv2.waitKey(0)

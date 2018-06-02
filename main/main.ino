@@ -1,6 +1,7 @@
 #include "motor/motor_control.h"
 #include "braitenberg/braitenberg.h" 
 #include "motor/manual_mode.h"
+#include "dynamixel/dyn_control.h"
 
 static char* in_buffer;
 static int length = 10;
@@ -12,12 +13,14 @@ void setup()
 {
 	//Starts the communication with the raspberry pi (or computer)
 	Serial.begin(9600);    
-
-	init_motor();
+  
+  init_motor();
 
 	init_us_sensors();
 
 	init_manual_mode();
+
+	init_dyn();
 
 	speed_right = 0;
 	speed_left = 0;

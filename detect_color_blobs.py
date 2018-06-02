@@ -11,25 +11,36 @@ args = vars(ap.parse_args())
 # load the image
 image = cv2.imread('beacon_exemple.png')
 
+image_hsv = cv2.cvtColor(image,  cv2.COLOR_BGR2HSV)
+
 # definition des bornes pour le choix des couleurs
 boundaries = [
-	([0, 0, 100], [100, 50, 255]), #rouge
-	([0, 100, 0], [170, 255, 50]), #vert
-	([180, 0, 0], [255, 70, 70]), #bleu
-	([0, 220, 220], [255, 255, 255]) #jaune
+	([170, 100, 100], [20, 255, 255]), #rouge
+	([80,100,100],[90,255,255]), #vert
+	([100, 100, 100], [120, 255, 255]), #bleu
+	([0, 0, 150], [50, 100, 255]) #jaune
 ]
+
 
 # loop over the boundaries
 for (lower, upper) in boundaries:
+	
 	# create NumPy arrays from the boundaries
 	lower = np.array(lower, dtype = "uint8")
 	upper = np.array(upper, dtype = "uint8")
- 
-	# find the colors within the specified boundaries and apply
-	# the mask
-	mask = cv2.inRange(image, lower, upper)
-	output = cv2.bitwise_and(image, image, mask = mask)
- 
+	
+	if lower[0] > upper[0]:
+		# find the colors within the specified boundaries and apply
+		# the mask
+		mask1 = cv2.inRange(image_hsv, np.array([0, lower[1], lower[2]], dtype = "uint8"), upper)
+		mask2 = cv2.inRange(image_hsv, lower, np.array([255, upper[1], upper[2]], dtype = "uint8"))
+		mask = mask1 | mask2
+	else:
+		mask = cv2.inRange(image_hsv, lower, upper)
+	
+	output_hsv = cv2.bitwise_and(image_hsv, image_hsv, mask = mask)
+
+	output = cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR)
 	# show the images
 	cv2.imshow("images", np.hstack([image, output]))
 	

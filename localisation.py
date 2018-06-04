@@ -4,6 +4,7 @@ import argparse
 import cv2
 
 
+#function computing the position and the orientation of the robot
 def ToTal_algorithm((x1,y1),(x2,y2),(x3,y3),phi1,phi2,phi3):
 	
 	#compute the modified beacon coordinates
@@ -41,6 +42,20 @@ def ToTal_algorithm((x1,y1),(x2,y2),(x3,y3),phi1,phi2,phi3):
 	
 	return (x_pos,y_pos,theta)
 
+#fonction masquant l'image pour obtenir uniquement le cercle avec les beacons
+def masque(im_input):
+	#cv2.circle(image, (309,198), 95, (0,0,0), -1)
+	
+	msq = np.zeros((len(image),len(image[0])),np.uint8)
+	
+	cv2.circle(msq, (309,198), 115, (255,255,255), -1)
+	cv2.circle(msq, (309,198), 95, (0,0,0), -1)
+	
+	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
+	
+	return im_output
+
+#function displaying the result
 def dessin(position_x, position_y, theta):
 	dessin = np.zeros((1020,1020))
 	dessin = dessin + 255
@@ -62,34 +77,55 @@ ap.add_argument("-i", "--image", help = "path to the image")
 args = vars(ap.parse_args())
 
 # load the image
-image = cv2.imread('beacon_exemple_retouches.png')
+image = cv2.imread('donnees/essais_sombre2.png')
 
-center_x = len(image[0])/2
-center_y = len(image)/2
+image_msq = masque(image)
+
+image_hsv = cv2.cvtColor(image_msq,  cv2.COLOR_BGR2HSV)
+
+center_x = 309 # len(image[0])/2
+center_y = 198 #len(image)/2
 
 
 # definition des bornes pour le choix des couleurs
 boundaries = [
-	([0, 0, 240], [50, 50, 255], 0), #rouge
-	([0, 200, 200], [50, 255, 255], 1), #jaune
-	([180, 0, 0], [255, 70, 70], 2), #bleu
-	([0, 240, 0], [50, 255, 50], 3) #vert
+	([170, 150, 100], [40, 255, 255], 0), #rouge
+	([70,100,100],[100,255,255], 1), #vert
+	([100, 110, 110], [115, 255, 255], 2), #bleu
+	([25, 0, 50], [45, 50, 255], 3) #jaune
 ]
+
 
 angle = np.zeros((4,1))
 
 # loop over the boundaries
 for (lower, upper, num) in boundaries:
+	
 	# create NumPy arrays from the boundaries
 	lower = np.array(lower, dtype = "uint8")
 	upper = np.array(upper, dtype = "uint8")
  
-	# find the colors within the specified boundaries and apply
-	# the mask
-	mask = cv2.inRange(image, lower, upper)
-	output = cv2.bitwise_and(image, image, mask = mask)
+	if lower[0] > upper[0]:
+		# find the colors within the specified boundaries and apply
+		# the mask
+		mask1 = cv2.inRange(image_hsv, np.array([0, lower[1], lower[2]], dtype = "uint8"), upper)
+		mask2 = cv2.inRange(image_hsv, lower, np.array([255, upper[1], upper[2]], dtype = "uint8"))
+		mask = mask1 | mask2
+	else:
+		mask = cv2.inRange(image_hsv, lower, upper)
+	
+	output_hsv = cv2.bitwise_and(image_hsv, image_hsv, mask = mask)
 
-	y, x, _ = np.nonzero(output)
+	output = cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR)
+
+	kernel = np.ones((3,3),np.uint8)
+	erosion = cv2.erode(output,kernel,iterations = 1)
+	cv2.imshow("erosion",erosion)
+	
+	dilation = cv2.dilate(erosion,kernel,iterations = 1)
+	cv2.imshow("dilation", dilation)
+	
+	y, x, _ = np.nonzero(dilation)
 	tan = float(-(x[0]-center_x))/float(-(y[0]-center_y))
 	if -(y[0]-center_y) > 0:
 		angle[num] = np.arctan(tan)
@@ -97,13 +133,13 @@ for (lower, upper, num) in boundaries:
 		angle[num] = np.arctan(tan)+np.pi
 	
 	# show the images
-	cv2.imshow("images", np.hstack([image, output]))
+	cv2.imshow("images", np.hstack([image, dilation]))
 	cv2.waitKey(0)
 
 
 #compute the robot position and orientation using ToTal algorithm
 position_x, position_y, theta = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[1],angle[2])
-print(angle)
+#print(angle)
 print(theta)
 print(position_x)
 print(position_y)

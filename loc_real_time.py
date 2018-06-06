@@ -6,8 +6,8 @@ import picamera
 import io
 
 
-center_x = 330 # len(image[0])/2
-center_y = 230 #len(image)/2
+center_x = 333 # len(image[0])/2
+center_y = 209 #len(image)/2
 
 
 #function computing the position and the orientation of the robot
@@ -62,7 +62,7 @@ def masque(im_input):
 	#cv2.circle(msq, (309,198), 115, (255,255,255), -1)
 	#cv2.circle(msq, (309,198), 5, (0,0,0), -1)
 	cv2.circle(msq, (center_x,center_y), 135, (255,255,255), -1)
-	cv2.circle(msq, (center_x,center_y), 105, (0,255,0), -1)
+	cv2.circle(msq, (center_x,center_y), 95, (0,255,0), -1)
 	
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
 	cv2.imshow("masquage", im_output)
@@ -128,10 +128,10 @@ angle_prev = np.zeros((4,1))
 
 # definition des bornes pour le choix des couleurs
 boundaries = [
-	([160, 50, 80], [10, 255, 255], 0), #rouge
+	([160, 30, 80], [10, 255, 255], 0), #rouge
 	([70,100,100],[100,255,255], 1), #vert
-	([95, 60, 60], [125, 255, 255], 2), #bleu
-	([10, 50, 150], [30, 150, 255], 3) #jaune
+	([95, 60, 60], [125, 255, 255], 2) #bleu
+	#([10, 50, 150], [30, 150, 255], 3) #jaune
 ]
 
 
@@ -214,7 +214,7 @@ while True:
 	print(theta)
 	print(position_x)
 	print(position_y)
-	cv2.waitKey(0)
+	#cv2.waitKey(0)
 	
 
 	#dessin(position_x, position_y, theta)

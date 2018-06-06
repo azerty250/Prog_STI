@@ -6,6 +6,10 @@ import picamera
 import io
 
 
+center_x = 330 # len(image[0])/2
+center_y = 230 #len(image)/2
+
+
 #function computing the position and the orientation of the robot
 def ToTal_algorithm((x1,y1),(x2,y2),(x3,y3),phi1,phi2,phi3):
 	
@@ -33,14 +37,19 @@ def ToTal_algorithm((x1,y1),(x2,y2),(x3,y3),phi1,phi2,phi3):
 	D = (x12_p-x23_p)*(y23_p-y31_p) - (y12_p-y23_p)*(x23_p-x31_p)
 	
 	#compute the robot position
-	x_pos = x2 + (k31_p*(y12_p-y23_p))/D
-	y_pos = y2 + (k31_p*(x23_p-x12_p))/D
+	x_pos = y2 + (k31_p*(x23_p-x12_p))/D
+	y_pos = x2 + (k31_p*(y12_p-y23_p))/D
 	
 	#compute the robot orientation
 	if y1-y_pos > 0:
 		theta = np.arctan(-(x1-x_pos)/(y1-y_pos))-phi1
 	else:
 		theta = np.arctan(-(x1-x_pos)/(y1-y_pos))-phi1+np.pi
+	
+	x_pos = 1-x_pos
+	y_pos = 1-y_pos
+	
+	theta = -theta+np.pi/2 - 0.1
 	
 	return (x_pos,y_pos,theta)
 
@@ -52,18 +61,18 @@ def masque(im_input):
 	
 	#cv2.circle(msq, (309,198), 115, (255,255,255), -1)
 	#cv2.circle(msq, (309,198), 5, (0,0,0), -1)
-	cv2.circle(msq, (326,210), 118, (255,255,255), -1)
-	cv2.circle(msq, (326,210), 95, (0,0,0), -1)
+	cv2.circle(msq, (center_x,center_y), 120, (255,255,255), -1)
+	cv2.circle(msq, (center_x,center_y), 95, (0,255,0), -1)
 	
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
-	#cv2.imshow("masquage", im_output)
+	cv2.imshow("masquage", im_output)
 	return im_output
 
 #masquage dependant de l'angle precedemment calcule
 def masque_select(im_input, alpha):
 	alpha = -alpha*360/(2*np.pi)+180
 	msq = np.zeros((len(image),len(image[0])),np.uint8)
-	cv2.ellipse(msq,(326,210),(120,120),alpha,-250,70,(255,255,255),-1)
+	cv2.ellipse(msq,(center_x,center_y),(120,120),alpha,-255,75,(255,255,255),-1)
 	msq = 255-msq
 	cv2.imshow("msq",msq)
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
@@ -120,8 +129,8 @@ angle_prev = np.zeros((4,1))
 boundaries = [
 	([160, 50, 80], [10, 255, 255], 0), #rouge
 	([70,100,100],[100,255,255], 1), #vert
-	([80, 80, 80], [120, 255, 255], 2), #bleu
-	([10, 0, 150], [30, 100, 255], 3) #jaune
+	([90, 80, 80], [120, 255, 255], 2), #bleu
+	([10, 100, 150], [30, 150, 255], 3) #jaune
 ]
 
 
@@ -138,9 +147,6 @@ while True:
 	image_msq = masque(image)
 
 	image_hsv = cv2.cvtColor(image_msq,  cv2.COLOR_BGR2HSV)
-
-	center_x = 309 # len(image[0])/2
-	center_y = 198 #len(image)/2
 
 
 	# loop over the boundaries
@@ -173,7 +179,8 @@ while True:
 
 		cv2.imshow("couleurs", output)
 
-		output = opening(output)
+		if num == 0 or num == 1 or num == 3:
+			output = opening(output)
 		angle_prev[num] = angle[num]
 		print("premier:")
 		print(angle[num])

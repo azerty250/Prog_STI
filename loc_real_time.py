@@ -61,8 +61,8 @@ def masque(im_input):
 	
 	#cv2.circle(msq, (309,198), 115, (255,255,255), -1)
 	#cv2.circle(msq, (309,198), 5, (0,0,0), -1)
-	cv2.circle(msq, (center_x,center_y), 120, (255,255,255), -1)
-	cv2.circle(msq, (center_x,center_y), 95, (0,255,0), -1)
+	cv2.circle(msq, (center_x,center_y), 135, (255,255,255), -1)
+	cv2.circle(msq, (center_x,center_y), 105, (0,255,0), -1)
 	
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
 	cv2.imshow("masquage", im_output)
@@ -72,7 +72,7 @@ def masque(im_input):
 def masque_select(im_input, alpha):
 	alpha = -alpha*360/(2*np.pi)+180
 	msq = np.zeros((len(image),len(image[0])),np.uint8)
-	cv2.ellipse(msq,(center_x,center_y),(120,120),alpha,-255,75,(255,255,255),-1)
+	cv2.ellipse(msq,(center_x,center_y),(135,135),alpha,-255,75,(255,255,255),-1)
 	msq = 255-msq
 	cv2.imshow("msq",msq)
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
@@ -120,6 +120,7 @@ stream = io.BytesIO()
 camera.capture(stream,format='jpeg')
 data = np.fromstring(stream.getvalue(), dtype=np.uint8)
 image = cv2.imdecode(data, 1)
+cv2.imshow("inutile", image)
 
 angle = np.zeros((4,1))
 angle_prev = np.zeros((4,1))
@@ -129,8 +130,8 @@ angle_prev = np.zeros((4,1))
 boundaries = [
 	([160, 50, 80], [10, 255, 255], 0), #rouge
 	([70,100,100],[100,255,255], 1), #vert
-	([90, 80, 80], [120, 255, 255], 2), #bleu
-	([10, 100, 150], [30, 150, 255], 3) #jaune
+	([95, 60, 60], [125, 255, 255], 2), #bleu
+	([10, 50, 150], [30, 150, 255], 3) #jaune
 ]
 
 
@@ -206,6 +207,10 @@ while True:
 	position_x, position_y, theta = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[1],angle[2])
 	#print(angle)
 	#print(angle_prev)
+	position_x = position_x *8
+	position_y = position_y *8
+	theta = theta * 360 /(2*np.pi)
+	
 	print(theta)
 	print(position_x)
 	print(position_y)

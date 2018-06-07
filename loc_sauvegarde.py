@@ -6,8 +6,8 @@ import picamera
 import io
 
 
-center_x = 323 # len(image[0])/2
-center_y = 220 #len(image)/2
+center_x = 333 # len(image[0])/2
+center_y = 209 #len(image)/2
 
 
 #function computing the position and the orientation of the robot
@@ -37,9 +37,8 @@ def ToTal_algorithm((x1,y1),(x2,y2),(x3,y3),phi1,phi2,phi3):
 	D = (x12_p-x23_p)*(y23_p-y31_p) - (y12_p-y23_p)*(x23_p-x31_p)
 	
 	#compute the robot position
-	x_pos = x2 + (k31_p*(y12_p-y23_p))/D
-	y_pos = y2 + (k31_p*(x23_p-x12_p))/D
-
+	x_pos = y2 + (k31_p*(x23_p-x12_p))/D
+	y_pos = x2 + (k31_p*(y12_p-y23_p))/D
 	
 	#compute the robot orientation
 	if y1-y_pos > 0:
@@ -87,62 +86,6 @@ def opening(im_input):
 	dilation = cv2.dilate(erosion,kernel,iterations = 1)
 	#cv2.imshow("dilation", dilation)
 	return dilation
-
-#function that choose the beacons to use
-def choix_beacons(angles):
-	#i_min = 0
-	#for i in range(1,4):
-#		if angles[i] < angles[i_min]:
-#			i_min = i
-#		
-#	angle_max = i_min
-#	for k in range(1,4)
-#		if angles[(i_min+k)%3] > angle_max:
-#			angle_max = angles[(i_min+k)%3]
-#	print(i_min)
-	
-	pair = np.zeros((4,1))
-	
-	#calcul des angles des pairs
-	if angles[1] > angles[0]:
-		pair[0] = angles[1] - angles[0]
-	else:
-		pair[0] = 2*np.pi+angle[1] - angle[0]
-		
-	if angles[2] > angles[1]:
-		pair[1] = angles[2] - angles[1]
-	else:
-		pair[1] = 2*np.pi+angle[2] - angle[1]
-		
-	if angles[3] > angles[2]:
-		pair[2] = angles[3] - angles[2]
-	else:
-		pair[2] = 2*np.pi+angle[3] - angle[2]
-		
-	if angles[0] > angles[3]:
-		pair[3] = angles[0] - angles[3]
-	else:
-		pair[3] = 2*np.pi+angle[0] - angle[3]
-		
-	print("pairs:")
-	print(pair)
-	#recherche de l'angle le plus grand dans les pairs
-	pair_max = 0
-	for i in range(1,4):
-		if(pair[i] > pair[pair_max]):
-			pair_max = i
-	
-	pair_used = (pair_max+2)%4
-	
-	print("hello")
-	print(pair_used)
-	if pair[(pair_used+1)%4] > pair[(pair_used+3)%4]:
-		unused_beacon = (pair_used+2)%4
-	else:
-		unused_beacon = (pair_used+3)%4
-	
-	print(unused_beacon)
-	return unused_beacon
 	
 #function displaying the result
 def dessin(position_x, position_y, theta):
@@ -171,7 +114,7 @@ args = vars(ap.parse_args())
 camera = picamera.PiCamera()
 camera.resolution = (640,480)
 #camera.framerate = 2
-camera.brightness = 40
+#camera.brightness = 60
 
 stream = io.BytesIO()
 camera.capture(stream,format='jpeg')
@@ -180,14 +123,15 @@ image = cv2.imdecode(data, 1)
 cv2.imshow("inutile", image)
 
 angle = np.zeros((4,1))
+angle_prev = np.zeros((4,1))
 
 
 # definition des bornes pour le choix des couleurs
 boundaries = [
 	([160, 30, 80], [10, 255, 255], 0), #rouge
 	([70,100,100],[100,255,255], 1), #vert
-	([95, 60, 60], [125, 255, 255], 2), #bleu
-	([10, 0, 150], [30, 150, 255], 3) #jaune
+	([95, 60, 60], [125, 255, 255], 2) #bleu
+	#([10, 50, 150], [30, 150, 255], 3) #jaune
 ]
 
 
@@ -236,9 +180,12 @@ while True:
 
 		cv2.imshow("couleurs", output)
 
-		if num == 0 or num == 1:# or num == 3:
+		if num == 0 or num == 1 or num == 3:
 			output = opening(output)
-		
+		angle_prev[num] = angle[num]
+		print("premier:")
+		print(angle[num])
+		print(angle_prev[num])
 		y, x, _ = np.nonzero(output)
 		if(len(x) != 0 and len(y) != 0):
 			tan = float(-(x[0]-center_x))/float(-(y[0]-center_y))
@@ -249,30 +196,17 @@ while True:
 	
 		# show the images
 		cv2.imshow("images", np.hstack([image, output]))
-
+		print("deuxieme:")
 		print(angle[num])
-		
+		print(angle_prev[num])
 		cv2.waitKey(0)
 		
 
 
 	#compute the robot position and orientation using ToTal algorithm
-	if angle[0] != 0 and angle[1] != 0 and angle[2] != 0 and angle[3] != 0:
-		if choix_beacons(angle) == 0:
-			position_x, position_y, theta = ToTal_algorithm((0,0),(1,0),(1,1),angle[3],angle[2],angle[1])
-	
-		if choix_beacons(angle) == 1:
-			position_x, position_y, theta = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[3],angle[2])
-	
-		if choix_beacons(angle) == 2:
-			position_x, position_y, theta = ToTal_algorithm((1,1),(0,1),(0,0),angle[1],angle[0],angle[3])
-	
-		if choix_beacons(angle) == 3:
-			position_x, position_y, theta = ToTal_algorithm((1,0),(1,1),(0,1),angle[2],angle[1],angle[0])
-	else:
-		position_x, position_y, theta = ToTal_algorithm((0,1),(1,1),(1,0),angle[0],angle[1],angle[2])
-	
+	position_x, position_y, theta = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[1],angle[2])
 	#print(angle)
+	#print(angle_prev)
 	position_x = position_x *8
 	position_y = position_y *8
 	theta = theta * 360 /(2*np.pi)
@@ -281,7 +215,6 @@ while True:
 	print(position_x)
 	print(position_y)
 	#cv2.waitKey(0)
-	
 	
 
 	#dessin(position_x, position_y, theta)

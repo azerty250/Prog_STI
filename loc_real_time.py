@@ -6,8 +6,8 @@ import picamera
 import io
 
 
-center_x = 323 # len(image[0])/2
-center_y = 220 #len(image)/2
+center_x = 325 # len(image[0])/2
+center_y = 212 #len(image)/2
 
 
 #function computing the position and the orientation of the robot
@@ -63,9 +63,10 @@ def masque(im_input):
 	#cv2.circle(msq, (309,198), 115, (255,255,255), -1)
 	#cv2.circle(msq, (309,198), 5, (0,0,0), -1)
 	cv2.circle(msq, (center_x,center_y), 135, (255,255,255), -1)
-	cv2.circle(msq, (center_x,center_y), 95, (0,255,0), -1)
+	cv2.circle(msq, (center_x,center_y), 95, (0,0,0), -1)
 	
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
+	#cv2.circle(im_output, (center_x,center_y), 5, (255,0,255), -1)
 	cv2.imshow("masquage", im_output)
 	return im_output
 
@@ -124,8 +125,8 @@ def choix_beacons(angles):
 	else:
 		pair[3] = 2*np.pi+angle[0] - angle[3]
 		
-	print("pairs:")
-	print(pair)
+	#print("pairs:")
+	#print(pair)
 	#recherche de l'angle le plus grand dans les pairs
 	pair_max = 0
 	for i in range(1,4):
@@ -180,12 +181,16 @@ image = cv2.imdecode(data, 1)
 cv2.imshow("inutile", image)
 
 angle = np.zeros((4,1))
+angle[0] = 2.4
+angle[1] = 3.6
+angle[2] = 5.5
+angle[3] = 1
 
 
 # definition des bornes pour le choix des couleurs
 boundaries = [
 	([160, 30, 80], [10, 255, 255], 0), #rouge
-	([70,100,100],[100,255,255], 1), #vert
+	([70,50,90],[100,255,255], 1), #vert
 	([95, 60, 60], [125, 255, 255], 2), #bleu
 	([10, 0, 150], [30, 150, 255], 3) #jaune
 ]
@@ -241,16 +246,22 @@ while True:
 		
 		y, x, _ = np.nonzero(output)
 		if(len(x) != 0 and len(y) != 0):
-			tan = float(-(x[0]-center_x))/float(-(y[0]-center_y))
+			x_beacon = (x[0]+x[len(x)-1])/2
+			y_beacon = (y[0]+y[len(y)-1])/2
+			tan = float(-(x_beacon-center_x))/float(-(y_beacon-center_y))
 			if -(y[0]-center_y) > 0:
 				angle[num] = np.arctan(tan)
 			else:
 				angle[num] = np.arctan(tan)+np.pi
 	
+		for a in angle:
+			cv2.line(image, (center_x,center_y), (center_x-100*np.cos(a-np.pi/2),center_y + 100*np.sin(a-np.pi/2)),(0,0,255))
+		
 		# show the images
 		cv2.imshow("images", np.hstack([image, output]))
 
 		print(angle[num])
+		
 		
 		cv2.waitKey(0)
 		
@@ -260,15 +271,19 @@ while True:
 	if angle[0] != 0 and angle[1] != 0 and angle[2] != 0 and angle[3] != 0:
 		if choix_beacons(angle) == 0:
 			position_x, position_y, theta = ToTal_algorithm((0,0),(1,0),(1,1),angle[3],angle[2],angle[1])
+			print("on utilise pas le rouge")
 	
 		if choix_beacons(angle) == 1:
 			position_x, position_y, theta = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[3],angle[2])
-	
+			print("on utilise pas le vert")
+			
 		if choix_beacons(angle) == 2:
 			position_x, position_y, theta = ToTal_algorithm((1,1),(0,1),(0,0),angle[1],angle[0],angle[3])
-	
+			print("on utilise pas le bleu")
+			
 		if choix_beacons(angle) == 3:
 			position_x, position_y, theta = ToTal_algorithm((1,0),(1,1),(0,1),angle[2],angle[1],angle[0])
+			print("on utilise pas le jaune")
 	else:
 		position_x, position_y, theta = ToTal_algorithm((0,1),(1,1),(1,0),angle[0],angle[1],angle[2])
 	

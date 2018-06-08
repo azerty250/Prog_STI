@@ -7,7 +7,7 @@ import io
 
 
 center_x = 325 # len(image[0])/2
-center_y = 212 #len(image)/2
+center_y = 211 #len(image)/2
 
 
 #function computing the position and the orientation of the robot
@@ -80,14 +80,14 @@ def masque_select(im_input, alpha):
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
 	return im_output
 
-def opening(im_input):
+def erosion(im_input):
 	kernel = np.ones((3,3),np.uint8)
 	erosion = cv2.erode(output,kernel,iterations = 1)
 	#cv2.imshow("erosion",erosion)
 	
-	dilation = cv2.dilate(erosion,kernel,iterations = 1)
+	#dilation = cv2.dilate(erosion,kernel,iterations = 1)
 	#cv2.imshow("dilation", dilation)
-	return dilation
+	return erosion
 
 #function that choose the beacons to use
 def choix_beacons(angles):
@@ -145,6 +145,38 @@ def choix_beacons(angles):
 	print(unused_beacon)
 	return unused_beacon
 	
+#fonction calculant la moyenne des positions trouvees
+def average(angle):
+	position_x = np.zeros((4,1))
+	position_y = np.zeros((4,1))
+	theta = np.zeros((4,1))
+
+	position_x[0], position_y[0], theta[0] = ToTal_algorithm((0,0),(1,0),(1,1),angle[3],angle[2],angle[1])
+	position_x[1], position_y[1], theta[1] = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[3],angle[2])
+	position_x[2], position_y[2], theta[2] = ToTal_algorithm((1,1),(0,1),(0,0),angle[1],angle[0],angle[3])
+	position_x[3], position_y[3], theta[3] = ToTal_algorithm((1,0),(1,1),(0,1),angle[2],angle[1],angle[0])
+	
+	average_x = (position_x[0] + position_x[1] + position_x[2] + position_x[3])/4
+	average_y = (position_y[0] + position_y[1] + position_y[2] + position_y[3])/4
+	average_theta = (theta[0] + theta[1] + theta[2] + theta[3])/4
+	
+	return (average_x, average_y, average_theta)
+	
+	
+#functions that returs in which part of the arena we are
+def quadrant(position_x, position_y):
+	if position_x < 0.5:
+		if position_y < 0.5:
+			quadrant = 3
+		else:
+			quadrant = 0
+	else:
+		if position_y < 0.5:
+			quadrant = 2
+		else:
+			quadrant = 1
+	return quadrant
+	
 #function displaying the result
 def dessin(position_x, position_y, theta):
 	dessin = np.zeros((1020,1020))
@@ -172,7 +204,7 @@ args = vars(ap.parse_args())
 camera = picamera.PiCamera()
 camera.resolution = (640,480)
 #camera.framerate = 2
-camera.brightness = 40
+camera.brightness = 70
 
 stream = io.BytesIO()
 camera.capture(stream,format='jpeg')
@@ -181,15 +213,18 @@ image = cv2.imdecode(data, 1)
 cv2.imshow("inutile", image)
 
 angle = np.zeros((4,1))
-angle[0] = 2.4
-angle[1] = 3.6
-angle[2] = 5.5
-angle[3] = 1
+
+angle[0] = 3.9
+angle[1] = -1.4
+angle[2] = 0.4
+angle[3] = 2.9
+
+quad = 2
 
 
 # definition des bornes pour le choix des couleurs
 boundaries = [
-	([160, 30, 80], [10, 255, 255], 0), #rouge
+	([160, 10, 80], [10, 250, 255], 0), #rouge
 	([70,50,90],[100,255,255], 1), #vert
 	([95, 60, 60], [125, 255, 255], 2), #bleu
 	([10, 0, 150], [30, 150, 255], 3) #jaune
@@ -201,14 +236,27 @@ while True:
 	
 	# On capture une image
 	#ret,image = cap.read()
+	#stream = io.BytesIO()
+	camera.brightness = 40
 	stream = io.BytesIO()
 	camera.capture(stream,format='jpeg')
 	data = np.fromstring(stream.getvalue(), dtype=np.uint8)
 	image = cv2.imdecode(data, 1)
-	#cv2.imshow("entree",image)
+	cv2.imshow("entree",image)
+	
+	camera.brightness = 15
+	stream = io.BytesIO()
+	camera.capture(stream,format='jpeg')
+	data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+	image_sombre = cv2.imdecode(data, 1)
+	cv2.imshow("sombre", image_sombre)
+	
+	
 	image_msq = masque(image)
+	image_msq_sombre = masque(image_sombre)
 
 	image_hsv = cv2.cvtColor(image_msq,  cv2.COLOR_BGR2HSV)
+	image_hsv_sombre = cv2.cvtColor(image_msq_sombre,  cv2.COLOR_BGR2HSV)
 
 
 	# loop over the boundaries
@@ -219,8 +267,14 @@ while True:
 		upper = np.array(upper, dtype = "uint8")
 		
 		if angle[num] != 0:
+			#if angle[num] == quad:
+			#	image_hsv_passage = masque_select(image_hsv_sombre,angle[num])
+			#else:
 			image_hsv_passage = masque_select(image_hsv,angle[num])
 		else:
+			#if angle[num] == quad:
+			#	image_hsv_passage = image_hsv_sombre
+			#else:
 			image_hsv_passage = image_hsv
 		
 		masquee = cv2.cvtColor(image_hsv_passage, cv2.COLOR_HSV2BGR)
@@ -242,7 +296,7 @@ while True:
 		cv2.imshow("couleurs", output)
 
 		if num == 0 or num == 1:# or num == 3:
-			output = opening(output)
+			output = erosion(output)
 		
 		y, x, _ = np.nonzero(output)
 		if(len(x) != 0 and len(y) != 0):
@@ -268,25 +322,35 @@ while True:
 
 
 	#compute the robot position and orientation using ToTal algorithm
-	if angle[0] != 0 and angle[1] != 0 and angle[2] != 0 and angle[3] != 0:
-		if choix_beacons(angle) == 0:
-			position_x, position_y, theta = ToTal_algorithm((0,0),(1,0),(1,1),angle[3],angle[2],angle[1])
-			print("on utilise pas le rouge")
+#	if angle[0] != 0 and angle[1] != 0 and angle[2] != 0 and angle[3] != 0:
+#		if choix_beacons(angle) == 0:
+#			position_x, position_y, theta = ToTal_algorithm((0,0),(1,0),(1,1),angle[3],angle[2],angle[1])
+#			print("on utilise pas le rouge")
+#	
+#		if choix_beacons(angle) == 1:
+#			position_x, position_y, theta = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[3],angle[2])
+#			print("on utilise pas le vert")
+#			
+#		if choix_beacons(angle) == 2:
+#			position_x, position_y, theta = ToTal_algorithm((1,1),(0,1),(0,0),angle[1],angle[0],angle[3])
+#			print("on utilise pas le bleu")
+#			
+#		if choix_beacons(angle) == 3:
+#			position_x, position_y, theta = ToTal_algorithm((1,0),(1,1),(0,1),angle[2],angle[1],angle[0])
+#			print("on utilise pas le jaune")
+#	else:
+#		position_x, position_y, theta = ToTal_algorithm((0,1),(1,1),(1,0),angle[0],angle[1],angle[2])
+
+	#calcul du quadrant dans lequel le robot se trouve
+#	quad = quadrant(position_x, position_y)
+
+
+	position_x, position_y, theta = average(angle)
 	
-		if choix_beacons(angle) == 1:
-			position_x, position_y, theta = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[3],angle[2])
-			print("on utilise pas le vert")
-			
-		if choix_beacons(angle) == 2:
-			position_x, position_y, theta = ToTal_algorithm((1,1),(0,1),(0,0),angle[1],angle[0],angle[3])
-			print("on utilise pas le bleu")
-			
-		if choix_beacons(angle) == 3:
-			position_x, position_y, theta = ToTal_algorithm((1,0),(1,1),(0,1),angle[2],angle[1],angle[0])
-			print("on utilise pas le jaune")
-	else:
-		position_x, position_y, theta = ToTal_algorithm((0,1),(1,1),(1,0),angle[0],angle[1],angle[2])
-	
+	#position_ref_x, position_ref_y, theta_ref = ToTal_algorithm((0,1),(1,1),(1,0),3.9270,-0.78540,0.78540)
+	#print(position_ref_x*8)
+	#print(position_ref_y*8)
+	#print(theta_ref)
 	#print(angle)
 	position_x = position_x *8
 	position_y = position_y *8

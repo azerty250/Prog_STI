@@ -4,6 +4,7 @@ import argparse
 import cv2
 import picamera
 import io
+import time
 
 
 center_x = 325 # len(image[0])/2
@@ -47,21 +48,14 @@ def ToTal_algorithm((x1,y1),(x2,y2),(x3,y3),phi1,phi2,phi3):
 	else:
 		theta = np.arctan(-(x1-x_pos)/(y1-y_pos))-phi1+np.pi
 	
-	x_pos = 1-x_pos
-	y_pos = 1-y_pos
-	
-	theta = -theta+np.pi/2 - 0.1
 	
 	return (x_pos,y_pos,theta)
 
 #fonction masquant l'image pour obtenir uniquement le cercle avec les beacons
 def masque(im_input):
-	#cv2.circle(image, (309,198), 95, (0,0,0), -1)
 	
 	msq = np.zeros((len(image),len(image[0])),np.uint8)
 	
-	#cv2.circle(msq, (309,198), 115, (255,255,255), -1)
-	#cv2.circle(msq, (309,198), 5, (0,0,0), -1)
 	cv2.circle(msq, (center_x,center_y), 135, (255,255,255), -1)
 	cv2.circle(msq, (center_x,center_y), 95, (0,0,0), -1)
 	
@@ -74,14 +68,14 @@ def masque(im_input):
 def masque_select(im_input, alpha):
 	alpha = -alpha*360/(2*np.pi)+180
 	msq = np.zeros((len(image),len(image[0])),np.uint8)
-	cv2.ellipse(msq,(center_x,center_y),(135,135),alpha,-255,75,(255,255,255),-1)
+	cv2.ellipse(msq,(center_x,center_y),(135,135),alpha,-250,70,(255,255,255),-1)
 	msq = 255-msq
 	cv2.imshow("msq",msq)
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
 	return im_output
 
 def erosion(im_input):
-	kernel = np.ones((3,3),np.uint8)
+	kernel = np.ones((2,2),np.uint8)
 	erosion = cv2.erode(output,kernel,iterations = 1)
 	#cv2.imshow("erosion",erosion)
 	
@@ -89,72 +83,28 @@ def erosion(im_input):
 	#cv2.imshow("dilation", dilation)
 	return erosion
 
-#function that choose the beacons to use
-def choix_beacons(angles):
-	#i_min = 0
-	#for i in range(1,4):
-#		if angles[i] < angles[i_min]:
-#			i_min = i
-#		
-#	angle_max = i_min
-#	for k in range(1,4)
-#		if angles[(i_min+k)%3] > angle_max:
-#			angle_max = angles[(i_min+k)%3]
-#	print(i_min)
-	
-	pair = np.zeros((4,1))
-	
-	#calcul des angles des pairs
-	if angles[1] > angles[0]:
-		pair[0] = angles[1] - angles[0]
-	else:
-		pair[0] = 2*np.pi+angle[1] - angle[0]
-		
-	if angles[2] > angles[1]:
-		pair[1] = angles[2] - angles[1]
-	else:
-		pair[1] = 2*np.pi+angle[2] - angle[1]
-		
-	if angles[3] > angles[2]:
-		pair[2] = angles[3] - angles[2]
-	else:
-		pair[2] = 2*np.pi+angle[3] - angle[2]
-		
-	if angles[0] > angles[3]:
-		pair[3] = angles[0] - angles[3]
-	else:
-		pair[3] = 2*np.pi+angle[0] - angle[3]
-		
-	#print("pairs:")
-	#print(pair)
-	#recherche de l'angle le plus grand dans les pairs
-	pair_max = 0
-	for i in range(1,4):
-		if(pair[i] > pair[pair_max]):
-			pair_max = i
-	
-	pair_used = (pair_max+2)%4
-	
-	print("hello")
-	print(pair_used)
-	if pair[(pair_used+1)%4] > pair[(pair_used+3)%4]:
-		unused_beacon = (pair_used+2)%4
-	else:
-		unused_beacon = (pair_used+3)%4
-	
-	print(unused_beacon)
-	return unused_beacon
-	
 #fonction calculant la moyenne des positions trouvees
 def average(angle):
 	position_x = np.zeros((4,1))
 	position_y = np.zeros((4,1))
 	theta = np.zeros((4,1))
 
-	position_x[0], position_y[0], theta[0] = ToTal_algorithm((0,0),(1,0),(1,1),angle[3],angle[2],angle[1])
-	position_x[1], position_y[1], theta[1] = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[3],angle[2])
-	position_x[2], position_y[2], theta[2] = ToTal_algorithm((1,1),(0,1),(0,0),angle[1],angle[0],angle[3])
-	position_x[3], position_y[3], theta[3] = ToTal_algorithm((1,0),(1,1),(0,1),angle[2],angle[1],angle[0])
+	position_x[0], position_y[0], theta[0] = ToTal_algorithm((0,0),(1,0),(1,1),-angle[3],-angle[2],-angle[1])
+	position_x[1], position_y[1], theta[1] = ToTal_algorithm((0,1),(0,0),(1,0),-angle[0],-angle[3],-angle[2])
+	position_x[2], position_y[2], theta[2] = ToTal_algorithm((1,1),(0,1),(0,0),-angle[1],-angle[0],-angle[3])
+	position_x[3], position_y[3], theta[3] = ToTal_algorithm((1,0),(1,1),(0,1),-angle[2],-angle[1],-angle[0])
+
+#	print("positions en x:")
+#	print(position_x[0]*8)
+#	print(position_x[1]*8)
+#	print(position_x[2]*8)
+#	print(position_x[3]*8)
+	
+#	print("positions en y:")
+#	print(position_y[0]*8)
+#	print(position_y[1]*8)
+#	print(position_y[2]*8)
+#	print(position_y[3]*8)
 	
 	average_x = (position_x[0] + position_x[1] + position_x[2] + position_x[3])/4
 	average_y = (position_y[0] + position_y[1] + position_y[2] + position_y[3])/4
@@ -162,20 +112,6 @@ def average(angle):
 	
 	return (average_x, average_y, average_theta)
 	
-	
-#functions that returs in which part of the arena we are
-def quadrant(position_x, position_y):
-	if position_x < 0.5:
-		if position_y < 0.5:
-			quadrant = 3
-		else:
-			quadrant = 0
-	else:
-		if position_y < 0.5:
-			quadrant = 2
-		else:
-			quadrant = 1
-	return quadrant
 	
 #function displaying the result
 def dessin(position_x, position_y, theta):
@@ -204,7 +140,7 @@ args = vars(ap.parse_args())
 camera = picamera.PiCamera()
 camera.resolution = (640,480)
 #camera.framerate = 2
-camera.brightness = 70
+camera.brightness = 65
 
 stream = io.BytesIO()
 camera.capture(stream,format='jpeg')
@@ -214,10 +150,10 @@ cv2.imshow("inutile", image)
 
 angle = np.zeros((4,1))
 
-angle[0] = 3.9
-angle[1] = -1.4
-angle[2] = 0.4
-angle[3] = 2.9
+angle[0] = 0.1
+angle[1] = 1
+angle[2] = 3
+angle[3] = 5
 
 quad = 2
 
@@ -233,6 +169,7 @@ boundaries = [
 
 while True:
 	print("passage")
+	print(time.clock())
 	
 	# On capture une image
 	#ret,image = cap.read()
@@ -314,36 +251,11 @@ while True:
 		# show the images
 		cv2.imshow("images", np.hstack([image, output]))
 
-		print(angle[num])
+#		print(angle[num])
 		
 		
-		cv2.waitKey(0)
+		#cv2.waitKey(0)
 		
-
-
-	#compute the robot position and orientation using ToTal algorithm
-#	if angle[0] != 0 and angle[1] != 0 and angle[2] != 0 and angle[3] != 0:
-#		if choix_beacons(angle) == 0:
-#			position_x, position_y, theta = ToTal_algorithm((0,0),(1,0),(1,1),angle[3],angle[2],angle[1])
-#			print("on utilise pas le rouge")
-#	
-#		if choix_beacons(angle) == 1:
-#			position_x, position_y, theta = ToTal_algorithm((0,1),(0,0),(1,0),angle[0],angle[3],angle[2])
-#			print("on utilise pas le vert")
-#			
-#		if choix_beacons(angle) == 2:
-#			position_x, position_y, theta = ToTal_algorithm((1,1),(0,1),(0,0),angle[1],angle[0],angle[3])
-#			print("on utilise pas le bleu")
-#			
-#		if choix_beacons(angle) == 3:
-#			position_x, position_y, theta = ToTal_algorithm((1,0),(1,1),(0,1),angle[2],angle[1],angle[0])
-#			print("on utilise pas le jaune")
-#	else:
-#		position_x, position_y, theta = ToTal_algorithm((0,1),(1,1),(1,0),angle[0],angle[1],angle[2])
-
-	#calcul du quadrant dans lequel le robot se trouve
-#	quad = quadrant(position_x, position_y)
-
 
 	position_x, position_y, theta = average(angle)
 	
@@ -356,9 +268,9 @@ while True:
 	position_y = position_y *8
 	theta = theta * 360 /(2*np.pi)
 	
-	print(theta)
-	print(position_x)
-	print(position_y)
+#	print(theta)
+#	print(position_x)
+#	print(position_y)
 	#cv2.waitKey(0)
 	
 	

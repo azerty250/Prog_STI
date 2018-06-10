@@ -48,6 +48,7 @@ def ToTal_algorithm((x1,y1),(x2,y2),(x3,y3),phi1,phi2,phi3):
 	else:
 		theta = np.arctan(-(x1-x_pos)/(y1-y_pos))-phi1+np.pi
 	
+	theta = theta-np.pi/2
 	
 	return (x_pos,y_pos,theta)
 
@@ -126,6 +127,34 @@ def dessin(position_x, position_y, theta):
 	cv2.imshow('dessin',dessin)
 
 	cv2.waitKey(0)
+	
+def go_to_point(posx_robot, posy_robot, theta_robot, posx_goal, posy_goal):
+	
+	k_rotation = 1
+	k_translation = 1
+	
+	diff_x = posx_robot-posx_goal
+	diff_y = posy_goal-posy_robot
+	
+	diff_theta = np.arctan(diff_x/diff_y)*360/(2*np.pi)-theta_robot
+	print("diff_theta:")
+	print(diff_theta)
+	
+	#we begin with the rotation and when the robot has the good orientation
+	#then we make the translation
+	if(np.absolute(diff_theta) > 10):
+		speed_motor_right = k_rotation * diff_theta
+		speed_motor_left = -speed_motor_right
+	else:
+		distance = np.sqrt(np.square(diff_x)+np.square(diff_y))
+		print("distance:")
+		print(distance)
+		speed_motor_right = k_translation * distance
+		speed_motor_left = speed_motor_right
+	
+	
+	
+	return (speed_motor_right, speed_motor_left)
 
 
 
@@ -150,10 +179,10 @@ cv2.imshow("inutile", image)
 
 angle = np.zeros((4,1))
 
-angle[0] = 0.1
+angle[0] = -0.1
 angle[1] = 1
 angle[2] = 3
-angle[3] = 5
+angle[3] = 5.3
 
 quad = 2
 
@@ -254,7 +283,7 @@ while True:
 #		print(angle[num])
 		
 		
-		#cv2.waitKey(0)
+		cv2.waitKey(0)
 		
 
 	position_x, position_y, theta = average(angle)
@@ -268,9 +297,14 @@ while True:
 	position_y = position_y *8
 	theta = theta * 360 /(2*np.pi)
 	
-#	print(theta)
-#	print(position_x)
-#	print(position_y)
+	print(theta)
+	print(position_x)
+	print(position_y)
+	
+	speed_right, speed_left = go_to_point(position_x,position_y,theta, 6.0,2.0)
+	print("speed:")
+	print(speed_right)
+	print(speed_left)
 	#cv2.waitKey(0)
 	
 	

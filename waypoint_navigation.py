@@ -44,11 +44,16 @@ def ToTal_algorithm((x1,y1),(x2,y2),(x3,y3),phi1,phi2,phi3):
 	
 	#compute the robot orientation
 	if y1-y_pos > 0:
-		theta = np.arctan(-(x1-x_pos)/(y1-y_pos))-phi1
+		theta = np.arctan((x_pos-x1)/(y1-y_pos))-phi1
 	else:
-		theta = np.arctan(-(x1-x_pos)/(y1-y_pos))-phi1+np.pi
-	
-	theta = theta-np.pi/2
+		theta = np.arctan((x_pos-x1)/(y1-y_pos))-phi1+np.pi
+	print("theta:")
+	print(theta)
+	if theta < 0:
+		theta = theta+2*np.pi
+	else:
+		if theta > 2*np.pi:
+			theta = theta-2*np.pi
 	
 	return (x_pos,y_pos,theta)
 
@@ -62,7 +67,7 @@ def masque(im_input):
 	
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
 	#cv2.circle(im_output, (center_x,center_y), 5, (255,0,255), -1)
-	cv2.imshow("masquage", im_output)
+	#cv2.imshow("masquage", im_output)
 	return im_output
 
 #masquage dependant de l'angle precedemment calcule
@@ -71,7 +76,7 @@ def masque_select(im_input, alpha):
 	msq = np.zeros((len(image),len(image[0])),np.uint8)
 	cv2.ellipse(msq,(center_x,center_y),(135,135),alpha,-250,70,(255,255,255),-1)
 	msq = 255-msq
-	cv2.imshow("msq",msq)
+	#cv2.imshow("msq",msq)
 	im_output = cv2.bitwise_and(im_input, im_input, mask = msq)
 	return im_output
 
@@ -94,6 +99,12 @@ def average(angle):
 	position_x[1], position_y[1], theta[1] = ToTal_algorithm((0,1),(0,0),(1,0),-angle[0],-angle[3],-angle[2])
 	position_x[2], position_y[2], theta[2] = ToTal_algorithm((1,1),(0,1),(0,0),-angle[1],-angle[0],-angle[3])
 	position_x[3], position_y[3], theta[3] = ToTal_algorithm((1,0),(1,1),(0,1),-angle[2],-angle[1],-angle[0])
+
+	print("theta:")
+	print(theta[0]*360/(2*np.pi))
+	print(theta[1]*360/(2*np.pi))
+	print(theta[2]*360/(2*np.pi))
+	print(theta[3]*360/(2*np.pi))
 
 #	print("positions en x:")
 #	print(position_x[0]*8)
@@ -153,7 +164,6 @@ def go_to_point(posx_robot, posy_robot, theta_robot, posx_goal, posy_goal):
 		speed_motor_left = speed_motor_right
 	
 	
-	
 	return (speed_motor_right, speed_motor_left)
 
 
@@ -179,10 +189,10 @@ cv2.imshow("inutile", image)
 
 angle = np.zeros((4,1))
 
-angle[0] = -0.1
-angle[1] = 1
-angle[2] = 3
-angle[3] = 5.3
+angle[0] = -1
+angle[1] = 0.1
+angle[2] = 2.7
+angle[3] = 4.3
 
 quad = 2
 
@@ -208,21 +218,21 @@ while True:
 	camera.capture(stream,format='jpeg')
 	data = np.fromstring(stream.getvalue(), dtype=np.uint8)
 	image = cv2.imdecode(data, 1)
-	cv2.imshow("entree",image)
+#	cv2.imshow("entree",image)
 	
-	camera.brightness = 15
-	stream = io.BytesIO()
-	camera.capture(stream,format='jpeg')
-	data = np.fromstring(stream.getvalue(), dtype=np.uint8)
-	image_sombre = cv2.imdecode(data, 1)
-	cv2.imshow("sombre", image_sombre)
+#	camera.brightness = 15
+#	stream = io.BytesIO()
+#	camera.capture(stream,format='jpeg')
+#	data = np.fromstring(stream.getvalue(), dtype=np.uint8)
+#	image_sombre = cv2.imdecode(data, 1)
+#	cv2.imshow("sombre", image_sombre)
 	
 	
 	image_msq = masque(image)
-	image_msq_sombre = masque(image_sombre)
+#	image_msq_sombre = masque(image_sombre)
 
 	image_hsv = cv2.cvtColor(image_msq,  cv2.COLOR_BGR2HSV)
-	image_hsv_sombre = cv2.cvtColor(image_msq_sombre,  cv2.COLOR_BGR2HSV)
+#	image_hsv_sombre = cv2.cvtColor(image_msq_sombre,  cv2.COLOR_BGR2HSV)
 
 
 	# loop over the boundaries
@@ -244,7 +254,7 @@ while True:
 			image_hsv_passage = image_hsv
 		
 		masquee = cv2.cvtColor(image_hsv_passage, cv2.COLOR_HSV2BGR)
-		cv2.imshow("masque", masquee)
+#		cv2.imshow("masque", masquee)
 		
 		if lower[0] > upper[0]:
 			# find the colors within the specified boundaries and apply
@@ -259,17 +269,20 @@ while True:
 
 		output = cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR)
 
-		cv2.imshow("couleurs", output)
+#		cv2.imshow("couleurs", output)
 
-		if num == 0 or num == 1:# or num == 3:
+		if num == 0 or num == 1 or num == 3:
 			output = erosion(output)
 		
 		y, x, _ = np.nonzero(output)
 		if(len(x) != 0 and len(y) != 0):
 			x_beacon = (x[0]+x[len(x)-1])/2
 			y_beacon = (y[0]+y[len(y)-1])/2
-			tan = float(-(x_beacon-center_x))/float(-(y_beacon-center_y))
-			if -(y[0]-center_y) > 0:
+			if center_y - y_beacon != 0:
+				tan = float(-(x_beacon-center_x))/float(-(y_beacon-center_y))
+			else:
+				tan = 10000
+			if -(y_beacon-center_y) > 0:
 				angle[num] = np.arctan(tan)
 			else:
 				angle[num] = np.arctan(tan)+np.pi

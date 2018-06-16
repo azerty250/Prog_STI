@@ -20,6 +20,8 @@ long get_diff_enc_left();
 
 void reset_enc_left();	
 
+void max_min_speed(int* speed_left, int* speed_right);
+
 void motor_control_main(void);
 
 

@@ -20,46 +20,52 @@ unsigned int ambient2;
 unsigned int ir_value_1;
 unsigned int ir_value_2;
 unsigned int bottle_timeout;
+int count;
 
 void setup()
 {
   // set pin output mode (sources current)
   Serial.begin(9600);
   pinMode(LED, OUTPUT);
-  pinMode(IR_EN, OUTPUT);
-  pinMode(11,OUTPUT);
-  pinMode(A1,INPUT);
-  pinMode(A2,INPUT);
+  pinMode(A12, OUTPUT);
+  pinMode(A9,OUTPUT);
+  pinMode(A8,INPUT);
+  pinMode(A11,INPUT);
   bottle_timeout = 0;
+  count = 0;
 }
+
 
 void loop()
 {
   // turn on the emitter and read the IR sensor
-  ambient1 = analogRead(A1);
-  digitalWrite(IR_EN, HIGH); 
+  ambient1 = analogRead(A8);
+  digitalWrite(A9, HIGH); 
   delay(1);
-  ir_value_1 = analogRead(A1);
-  digitalWrite(IR_EN, LOW);
+  ir_value_1 = analogRead(A8);
+  digitalWrite(A9, LOW);
 
   ir_value_1 -= ambient1;
   
-  ambient2 = analogRead(A2);
-  digitalWrite(11, HIGH); 
+  ambient2 = analogRead(A11);
+  digitalWrite(A12, HIGH); 
   delay(1);
-  ir_value_2 = analogRead(A2);
-  digitalWrite(11, LOW);
+  ir_value_2 = analogRead(A11);
+  digitalWrite(A12, LOW);
 
   ir_value_2 -= ambient2;
 
-  /*Serial.print(ir_value_1);
+  Serial.print(count);
+  Serial.print("          ");  
+  Serial.print(ir_value_1);
   Serial.print("          ");
-  Serial.println(ir_value_2);*/
+  Serial.println(ir_value_2);
   delay(5);
 
-  if(((ir_value_1 > 20)||(ir_value_2 < 50)) && (millis()-bottle_timeout>1200))
+  if(((ir_value_1 > 95)||(ir_value_2 > 28)) && (millis()-bottle_timeout>1200))
   {
     bottle_timeout = millis();
+    count++;
     Serial.println("BOTTLE DETECTED");
   }
 }

@@ -1,9 +1,7 @@
 {
   "ExpandedNodes": [
-    "",
-    "\\braitenberg",
-    "\\motor"
+    ""
   ],
-  "SelectedNode": "\\main.ino",
+  "SelectedNode": "\\motor_control.h",
   "PreviewInSolutionExplorer": false
 }

@@ -1,8 +1,8 @@
 #include "motor_control.h"
 
 //Use pins with interruprs
-static Encoder enc_right(18, 19);
-static Encoder enc_left(20, 21);
+static Encoder enc_right(3, 2);
+static Encoder enc_left(21, 20);
 
 static long new_right = 0;
 static long new_left = 0;
@@ -47,36 +47,63 @@ void max_min_speed(int* speed_left, int* speed_right)
 		*speed_right = -200;
 	}
 }
-	
-void set_speed(char left, char right)          //Move forward
+
+void shake()
 {
-	if (left > 0 && right > 0)
+	set_speed(170, -170);
+	delay(200);
+	set_speed(-170, 170);
+	delay(300);
+	set_speed(170, -170);
+	delay(300);
+	set_speed(-170, 170);
+	delay(300);
+	set_speed(170, -170);
+	delay(300);
+	set_speed(-170, 170);
+	delay(300);
+	set_speed(0, 0);
+}
+
+void set_speed(int left, int right)          //Move forward
+{
+	char a,b;
+	if(left > 0 && right > 0)
 	{
-		analogWrite(E1, left);      //PWM Speed Control
-		digitalWrite(M1, LOW);
-		analogWrite(E2, right);
-		digitalWrite(M2, LOW);
+		a = (char) left;
+		b = (char) right;
+		analogWrite (E2,a);    
+  		digitalWrite(M2,HIGH);
+		analogWrite (E1,b);      //Forward control
+  		digitalWrite(M1,HIGH);    
+
 	}
-	else if (left < 0 && right > 0)
+	else if(left < 0 && right < 0)
 	{
-		analogWrite(E1, left);      //PWM Speed Control
-		digitalWrite(M1, HIGH);
-		analogWrite(E2, right);
-		digitalWrite(M2, LOW);
+		a = (char) -left;
+		b = (char) -right;
+		analogWrite (E1,b);      //Backward control
+  		digitalWrite(M1,LOW);    
+  		analogWrite (E2,a);    
+  		digitalWrite(M2,LOW);
 	}
-	else if (left > 0 && right < 0)
+	else if(left < 0 && right > 0)
 	{
-		analogWrite(E1, left);      //PWM Speed Control
-		digitalWrite(M1, LOW);
-		analogWrite(E2, right);
-		digitalWrite(M2, HIGH);
+		a = (char) -left;
+		b = (char) right;
+		analogWrite (E1,b);      //Turn left control
+  		digitalWrite(M1,HIGH);    
+  		analogWrite (E2,a);    
+  		digitalWrite(M2,LOW);
 	}
-	else if (left < 0 && right < 0)
+	else if(left > 0 && right < 0)
 	{
-		analogWrite(E1, left);      //PWM Speed Control
-		digitalWrite(M1, HIGH);
-		analogWrite(E2, right);
-		digitalWrite(M2, HIGH);
+		a = (char) left;
+		b = (char) -right;
+		analogWrite (E1,b);      //Turn right control
+  		digitalWrite(M1,LOW);    
+  		analogWrite (E2,a);    
+  		digitalWrite(M2,HIGH);
 	}
 	else
 	{
@@ -87,7 +114,7 @@ void set_speed(char left, char right)          //Move forward
 	}
 }
 
-long get_diff_enc_right()
+float get_diff_enc_right()
 {
 	return enc_right.read();
 }
@@ -97,7 +124,7 @@ void reset_enc_right()
 	enc_right.write(0);
 }
 
-long get_diff_enc_left()
+float get_diff_enc_left()
 {
 	return enc_left.read();
 }
@@ -113,20 +140,20 @@ new_left = enc_left.read();
 
 if (new_left != positionLeft || new_right != positionRight)
 {
-	Serial.print("Left = ");
-	Serial.print(new_left);
-	Serial.print(", Right = ");
-	Serial.print(new_right);
-	Serial.println();
-	positionLeft = new_left;
-	positionRight = new_right;
+Serial.print("Left = ");
+Serial.print(new_left);
+Serial.print(", Right = ");
+Serial.print(new_right);
+Serial.println();
+positionLeft = new_left;
+positionRight = new_right;
 }*/
 
 #define ERROR_RES  5
 #define COR_FACTOR 10
 #define MAX_SPEED  200
 
-void motor_control_main(int goal_x, int goal_y,int pos_x, int pos_y, int* speed_left, int* speed_right)
+void motor_control_main(int goal_x, int goal_y, int pos_x, int pos_y, int* speed_left, int* speed_right)
 {
 	int error_x = goal_x - pos_x;
 	int error_y = goal_y - pos_y;

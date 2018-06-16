@@ -103,7 +103,7 @@ void loop(void)
   if(Serial.available())
   {
       char val = Serial.read();
-      if(val== 'w')
+      if(val == 'w')
       {
         enc_right.write(0);
         enc_left.write(0);
@@ -115,12 +115,6 @@ void loop(void)
       }
   }
 }
-
-
-
-
-
-
 
 
 
